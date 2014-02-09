@@ -6,7 +6,7 @@
 4 repeat steps 1-3, but starting with the reads from the other species
 
 ####Mapping
-Used as reference genome all cDNAs from zebrafinch, *Taeniopygia_guttata*, file Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa downloaded from ensemble release 62 through biomart
+Used as reference genome all cDNAs from zebrafinch, *Taeniopygia_guttata*, file Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa downloaded from ensemble release 62 through biomart.
 
 For mapping, Newbler version 2.5.3 was used.
 
@@ -23,7 +23,7 @@ HISP_MIDConfig.parse
 JoMID_MIDConfig.parse
 ```
 
-* 454 SFF files, see the paper for a ENA/SRA accession number. Make one file with all sfffiles (the MID coning files are used to selectreads for the mappings)
+* 454 SFF files, see the Hermansen et al paper for ENA/SRA accession number(s). Make one file with all sff files (the MID config files are used to select reads for the mappings)
 
 ```
 all_reads.sff
@@ -44,7 +44,7 @@ setRef -cref $PROJECT Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa
 runProject -ml 90% -mi 95  $PROJECT
 ```
 
-File used for next step: 454AllContigs.fna, containing the consensus sequences of the mapped reads.
+File used for next step: `454AllContigs.fna`, containing the consensus sequences of the mapped reads.
 
 ####Step 2: mapping of all DOM + HISP reads to DOM-mapped consensus contigs
 
@@ -77,15 +77,15 @@ runProject -ud -sio -ml 90% -mi 95 $PROJECT
 
 ####Step 3: find variant bases which are only called in one of the species
 
-The 454HCDiffs.txt contains the differences between the reads and the references, and lists all the mapped reads, divided between reads that map with (a) difference(s), or show the identical base(s) at the variable positions.  
-To summarise read counts for each sample (HISP* and DOM*), use the  parse454Diffs.pl script. **NOTE**, the path to the readID_sample.tsv file is hardcoded in the script (sorry…)
+The `454HCDiffs.txt` contains the differences between the reads and the references, and lists all the mapped reads, divided between reads that map with (a) difference(s), or show the identical base(s) at the variable positions.  
+To summarise read counts for each sample (HISP* and DOM*), use the  `parse454Diffs.pl` script. **NOTE**, the path to the `readID_sample.tsv` file is hardcoded in the script (sorry…)
 
 ```
 cd 110830_All_vs_HISP_mapped_ctgs_ml90%mi95/mapping/
 path/to/scripts/parse454Diffs.pl 454HCDiffs.txt >HCDiffs_with_sample.tsv
 ```
 
-The HCDiffs_with_sample.tsv is part of the repository and file has the following columns:
+The `HCDiffs_with_sample.tsv` is part of the repository and file has the following columns:
 
 * Reference Accno (e.g. DOM00003_ENSTGUG00000000025_22..1412, i.e. consensus contig from with DOM reads mapped to zebrafinch transcript ENSTGUG00000000025 position 22 to 1412)
 * Start position of variant in the reference contig
@@ -94,21 +94,22 @@ The HCDiffs_with_sample.tsv is part of the repository and file has the following
 * Variant nucleotide(s)
 * Total read depth
 * Variant frequency (frequency of reads with variant)
-* 12 pairs of columns with Ref and Var read counts for all 6 DOM, and all six HISP read datasets. E.g. Ref DOM3 0 Var DOM3 4 would mean no reads from sample DOM3 mapped to this place with the reference base, and 4 reads from the same sample mapped with the variant base.
+* 12 pairs of columns with Ref and Var read counts for all six DOM, and all six HISP read datasets. E.g. Ref DOM3 0 Var DOM3 4 would mean no reads from sample DOM3 mapped to this place with the reference base, and 4 reads from the same sample mapped with the variant base.
 * four columns (Ref DOM_count, Var DOM_count, Ref HISP_count, Var HISP_count) giving the total counts for reads of the DOM samples, and HISP samples, showing the Ref or Var base, respectively
 
-The logic is that the best candidate SNP that differ between DOM and HISP are those that either:
+The logic is that the best candidate SNPs that distinguish between DOM and HISP are present in all or most samples of one species, but never seen in any of the other. Practically, this means those SNPs that:
 
 * **Case 1:** show a zero for both Ref DOM_count and Var HISP_count, but not zero for Var DOM_count and Ref HISP_count,
 * **Case 2:**  show a zero for both Var DOM_count and Ref HISP_count, but not zero for Ref DOM_count and Var HISP_count
 
-A series of awk commands was used to generate a file with these SNPs:
+A series of awk commands was used to generate a file with these SNPs.
 
-First, copy the header and add one more column header
+First, copy the header and add one more column header:
 
 ```
 head -2 HCDiffs_with_sample.tsv |awk 'BEGIN{OFS=FS="\t"}{print $1, $2,$3,$4,$5,$6,$7,$32,$33,$34,$35,"sum_samples"}' >relevant_SNPs.tsv
 ```
+Then, select SNPs:
 
 **Case 1**
 
@@ -122,7 +123,7 @@ cat HCDiffs_with_sample.tsv|awk 'BEGIN{OFS=FS="\t"}$33==0&&$34==0 {print $1, $2,
 cat HCDiffs_with_sample.tsv|awk 'BEGIN{OFS=FS="\t"}$32==0&&$35==0 {print $1, $2,$3,$4,$5,$6,$7,$32,$33,$34,$35, $32+$33+$34+$35}' >>relevant_SNPs.tsv
 ```
 
-Sort by number of samples:
+The more samples have reads mapping to the SNP region, the better the candidate. So, we sort by number of samples having reads mapped to the SNP region:
 
 ```
 mv relevant_SNPs.tsv temp.tsv
@@ -130,7 +131,7 @@ sort -nr -k12,12 temp.tsv >relevant_SNPs.tsv
 rm temp.tsv
 ```
 
-Then manually put the headers on top again
+Then manually put the headers on top again.
 
 Splitting the first cell, e.g. from
 
@@ -149,18 +150,24 @@ Manually:
 * remove empty fifth column
 * change column order (contig number to fourth column)
 
-**Column orders in the `relevant_SNPs_2.tsv` file**
+**Adding flanking sequence **  
+The `get_SNP_flanks.pl` perl script adds the flanking sequences (max 100 bp on either side) and the description of the zebrafinch gene the reads mapped to.
+**NOTE** the path to the Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa files is hardcoded in the script (sorry…).
+
+```
+path/to/scripts/get_SNP_flanks.pl 110622_All_vs_DOM_mapped_ctgs_ml90%mi95 relevant_SNPs_2.tsv >relevant_SNPs_final.tsv
+```
+
+**Column orders in the `relevant_SNPs_final.tsv` file**
 
 Column name |Description
 ------------|--------
-ENSTGUG_reference|from 110829_HISP_vs_Tg_ml90%mi95
-ENSTGUG_map_start|where contig starts relative to ENSTGUG
-ENSTGUG_map_end|end
-HISP_mapping_contig_number|from 110829_HISP_vs_Tg_ml90%mi95
-HISP_contig_start|start position of the variant in the contig
-HISP_contig_end|end
-Ref_Nuc|Base in 110829_HISP_vs_Tg_ml90%mi95 consensus contigs
-Var_Nuc|Variant base
+DOM/HISP_mapping_contig_number|from 110829_HISP_vs_Tg_ml90%mi95
+DOM/HISP_contig_start|start position of the variant in the contig
+DOM/HISP_contig_end|end position
+left_flank|max 100 bp to the left of the SNP location
+SNP|e.g. [T/C]
+right_flank|max 100 bp to the right of the SNP location
 Total_Depth|Total read depth
 Var_Freq|% of reads with variant
 Ref_DOM_count|Number of DOM samples showing the Ref base
@@ -168,17 +175,13 @@ Var_DOM_count|Number of DOM samples showing the Var base
 Ref_HISP_count|Number of HISP samples showing the Ref base
 Var_HISP_count|Number of HISP samples showing the Var base
 sum_samples|Total number of either DOM or HISP samples involved (max 12)
+ENSTGUG_reference|from 110829_HISP_vs_Tg_ml90%mi95
+ENSTGUG_map_start|where contig starts relative to ENSTGUG
+ENSTGUG_map_end|end
+description|from the ENSTGUG transcript the reads mapped to (extracted from `Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa` file)
 
-**Getting flanking sequence (max 100 bp on either side)**  
-Generate coordinates file, used the get_SNP_flanks.pl perl script
-**NOTE** the path to the Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa files is hardcoded in the script (sorry…).
 
-```
-path/to/scripts/get_SNP_flanks.pl 110622_All_vs_DOM_mapped_ctgs_ml90%mi95 relevant_SNPs_2.tsv >relevant_SNPs_final.tsv
-```
-
-The relevant_SNPs_final.tsv is part of this repository.
-
+The `relevant_SNPs_final.tsv` file is part of this repository.
 
 ####Step 4 repeat steps 1-3, but starting with the reads from the other species
 
