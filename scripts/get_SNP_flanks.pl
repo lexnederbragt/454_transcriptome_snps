@@ -12,7 +12,7 @@ my %descriptions;
 
 open FASTA, "<$ARGV[0]" or die $!;
 open TABLE, "<$ARGV[1]" or die $!;
-open ANNOT, "< /projects/454data/cees/sparrow_SNP/data/zebrafinch/Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa" or die $!;
+open ANNOT, "< path/to/Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa" or die $!;
 
 
 # load sequences
