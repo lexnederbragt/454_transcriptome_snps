@@ -1,0 +1,15 @@
+/*
+**
+** JoMID_MIDConfig.parse
+** User-defined MID set.
+*/
+
+JoMID
+{
+     mid = "Dom3", "TCGAGA", 0;
+     mid = "Dom4", "ATATAT", 0;
+     mid = "Dom5", "GTAGCA", 0;
+     mid = "Dom6", "TACTGC", 0;
+     mid = "Dom7", "CACACG", 0;
+     mid = "Dom8", "CGAGAC", 0;
+}

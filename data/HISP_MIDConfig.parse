@@ -1,0 +1,15 @@
+/*
+**
+** JoMID_MIDConfig.parse
+** User-defined MID set.
+*/
+
+JoMID
+{
+     mid = "Hisp1", "CTGTCA", 0;
+     mid = "Hisp4", "CGTCGT", 0;
+     mid = "Hisp5", "GTACGC", 0;
+     mid = "Hisp6", "GTCACT", 0;
+     mid = "Hisp7", "TCGTAT", 0;
+     mid = "Hisp8", "TCTACT", 0;
+}
