@@ -191,6 +191,4 @@ For **Step 1**, change the `addRun` to
 addRun -mcf HSIP_MIDConfig.parse $PROJECT JoMID@/data/all_reads.sff
 ```
 
-For **Step 2 and 3**, use `HISP` when changing the contigs names in the 454AllContigs.fna
-
-
+For **Step 2 and 3**, use `HISP` when changing the contigs names in the `454AllContigs.fna`.
