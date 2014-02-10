@@ -8,7 +8,7 @@ Extended materials and methods describing the SNP finding for the following two 
 Lex Nederbragt, February 2014. All material licensed under a [Creative Commons CC0 license](http://creativecommons.org/publicdomain/zero/1.0/):
 
 
-See the [instructions](https://github.com/lexnederbragt/454_transcriptome_snps/blob/master/instructions.md) file for how to use this material
+See the [instructions](https://github.com/lexnederbragt/454_transcriptome_snps/blob/master/instructions.md) file for how to use this material.
 
 
 > The person who associated a work with this deed has dedicated the work to the public domain by waiving all of his or her rights to the work worldwide under copyright law, including all related and neighboring rights, to the extent allowed by law.

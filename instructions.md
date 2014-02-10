@@ -12,7 +12,7 @@ Obtaining SNPs that distinguish two species based on low-coverage 454 transcript
 * With low coverage datasets, it is not certain a variant region is represented by all read datasets. Therefore, select those SNPS that show coverage from as many samples as possible
 
 ###Application
-The method is meant to be applicable to any suitable dataset, but was developed for distinguishing sparrows, see the references in the README file. In particular, available were 454 transcriptome data for six samples of house sparrow, *P. domesticus* (`DOM`), and six samples of Spanish sparrows, *P. hispaniolensis* (`HISP`).
+The method is meant to be applicable to any suitable dataset, but was developed for distinguishing two sparrow species, see the references in the README file. In particular, available were 454 transcriptome data for six samples of house sparrow, *P. domesticus* (`DOM`), and six samples of Spanish sparrows, *P. hispaniolensis* (`HISP`).
 
 ###Steps
 1 map all cDNA reads from one species to the zebrafinch transcriptome  
@@ -29,25 +29,26 @@ For mapping, `Newbler` version 2.5.3 was used.
 `HISP` stands for Spanish sparrows, *P. hispaniolensis* 
 
 ####Prerequiste files
+Available in the `data` folder:
 
-* MID config files, describing the tags used for multiplexing, in the format needed for `Newbler`
+* MID config files, describing the tags (Multiplex Identifies, MIDs) used for multiplexing, in the format needed for `Newbler`
 
 ```
-DOM_MIDConfig.parse
-HISP_MIDConfig.parse
-JoMID_MIDConfig.parse
+DOM_MIDConfig.parse --> DOM specific MIDs
+HISP_MIDConfig.parse --> HISP specific MIDs
+JoMID_MIDConfig.parse --> All MIDs
 ```
+* File mapping all reads to samples
+
+```
+readID_sample.tsv
+```
+Available elsewhere:
 
 * 454 SFF files, see the Hermansen et al paper for ENA/SRA accession number(s). Make one file with all sff files (the MID config files are used to select reads for the mappings)
 
 ```
 all_reads.sff
-```
-
-* File mapping all reads to samples
-
-```
-readID_sample.tsv
 ```
 
 ####Step 1: DOM reads to zebrafinch transcripts
@@ -75,12 +76,14 @@ to
 
 `>DOM00001_ENSTGUG00000000018_1..2846`
 
+Commands:
+
 ```
 cd 110621_DOM_vs_Tg_ml90%mi95/mapping/
 cat 454AllContigs.fna|awk 'BEGIN{OFS="_"}{if ($0 ~ />/) {gsub (/contig/,"DOM",$1); print $1,substr($2,1,18),$3} else {print $0}}' >DOM_vs_Tg_AllContigs.fna
 ```
 
-This file is part of the repository.
+This file is part of the repository (`results` folder).
 
 **Second mapping**
 
@@ -102,7 +105,7 @@ cd 110830_All_vs_HISP_mapped_ctgs_ml90%mi95/mapping/
 path/to/scripts/parse454Diffs.pl 454HCDiffs.txt >HCDiffs_with_sample.tsv
 ```
 
-The `HCDiffs_with_sample.tsv` is part of the repository and file has the following columns:
+The `HCDiffs_with_sample.tsv` is part of the repository (`results` folder) and has the following columns:
 
 * Reference Accno (e.g. DOM00003_ENSTGUG00000000025_22..1412, i.e. consensus contig from with DOM reads mapped to zebrafinch transcript ENSTGUG00000000025 position 22 to 1412)
 * Start position of variant in the reference contig
@@ -111,15 +114,15 @@ The `HCDiffs_with_sample.tsv` is part of the repository and file has the followi
 * Variant nucleotide(s)
 * Total read depth
 * Variant frequency (frequency of reads with variant)
-* 12 pairs of columns with Ref and Var read counts for all six DOM, and all six HISP read datasets. E.g. Ref DOM3 0 Var DOM3 4 would mean no reads from sample DOM3 mapped to this place with the reference base, and 4 reads from the same sample mapped with the variant base.
-* four columns (Ref DOM_count, Var DOM_count, Ref HISP_count, Var HISP_count) giving the total counts for reads of the DOM samples, and HISP samples, showing the Ref or Var base, respectively
+* 12 pairs of columns with Ref and Var read counts for all six DOM, and all six HISP read datasets. E.g. `Ref DOM3 0 Var DOM3 4` would mean no reads from sample DOM3 mapped to this place with the reference base, and 4 reads from the same sample mapped with the variant base.
+* four columns (`Ref DOM_count`, `Var DOM_count`, `Ref HISP_count`, `Var HISP_count`) giving the total counts for reads of the DOM samples, and HISP samples, showing the Ref or Var base, respectively
 
 The logic is that the best candidate SNPs that distinguish between DOM and HISP are present in all or most samples of one species, but never seen in any of the other. Practically, this means those SNPs that:
 
-* **Case 1:** show a zero for both Ref DOM_count and Var HISP_count, but not zero for Var DOM_count and Ref HISP_count,
-* **Case 2:**  show a zero for both Var DOM_count and Ref HISP_count, but not zero for Ref DOM_count and Var HISP_count
+* **Case 1:** show a zero for both `Ref DOM_count` and `Var HISP_coun`t, but not zero for `Var DOM_count` and `Ref HISP_count`,
+* **Case 2:**  show a zero for both `Var DOM_count` and `Ref HISP_coun`t, but not zero for `Ref DOM_coun`t and `Var HISP_count`
 
-A series of awk commands was used to generate a file with these SNPs.
+A series of `awk` commands was used to generate a file with these SNPs.
 
 First, copy the header and add one more column header:
 
@@ -169,7 +172,7 @@ Manually:
 
 **Adding flanking sequence **  
 The `get_SNP_flanks.pl` perl script adds the flanking sequences (max 100 bp on either side) and the description of the zebrafinch gene the reads mapped to.
-**NOTE** the path to the Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa files is hardcoded in the script (sorry…).
+**NOTE** the path to the `Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa` file is hardcoded in the script (sorry…).
 
 ```
 path/to/scripts/get_SNP_flanks.pl 110622_All_vs_DOM_mapped_ctgs_ml90%mi95 relevant_SNPs_2.tsv >relevant_SNPs_final.tsv
@@ -198,7 +201,7 @@ ENSTGUG_map_end|end
 description|from the ENSTGUG transcript the reads mapped to (extracted from `Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa` file)
 
 
-The `relevant_SNPs_final.tsv` file is part of this repository.
+The `relevant_SNPs_final.tsv` file is part of this repository (`results` folder).
 
 ####Step 4 repeat steps 1-3, but starting with the reads from the other species
 
@@ -210,3 +213,10 @@ addRun -mcf HISP_MIDConfig.parse $PROJECT JoMID@/data/all_reads.sff
 
 For **Step 2 and 3**, use `HISP` when changing the contigs names in the `454AllContigs.fna`.
 **NOTE** that there will be overlapping SNPs with the results of the first round.
+
+###Reflections
+This work was done a while ago, and I have learned a few things then that would make me do things differentyly were I to redo this:
+
+* no hardcoded filepaths in perl script
+* no manual editing of intermediate files
+
