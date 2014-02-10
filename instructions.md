@@ -1,5 +1,20 @@
+###Why
+
+Obtaining SNPs that distinguish two species based on low-coverage 454 transcriptome data from multiple samples of each species, for neither of which a reference genome is available.
+
 ###Principles
 
+* Use the reference of a closely related species to map reads of all samples from species 1 with `Newbler` (`gsMapping`).
+* `Newbler` then uses the aligned reads to build consensus contigs
+* Map the reads of *all* samples of both species to these consensus sequences to call SNPs
+* Find variants distinguishing species 1 from species 2
+* Repeat, but start with species 2 for the first mapping
+* With low coverage datasets, it is not certain a variant region is represented by all read datasets. Therefore, select those SNPS that show coverage from as many samples as possible
+
+###Application
+The method is meant to be applicable to any suitable dataset, but was developed for distinguishing sparrows, see the references in the README file. In particular, available were 454 transcriptome data for six samples of house sparrow, *P. domesticus* (`DOM`), and six samples of Spanish sparrows, *P. hispaniolensis* (`HISP`).
+
+###Steps
 1 map all cDNA reads from one species to the zebrafinch transcriptome  
 2 use the consensus called on the reads mapped as reference for mapping all cDNA reads from *both* species  
 3 find variant bases which are only called in one of the species, i.e., all reads from one species show a different base than from the other species  
@@ -8,14 +23,14 @@
 ####Mapping
 Used as reference genome all cDNAs from zebrafinch, *Taeniopygia_guttata*, file Taeniopygia_guttata.taeGut3.2.4.62.cdna.biomart.fa downloaded from ensemble release 62 through biomart.
 
-For mapping, Newbler version 2.5.3 was used.
+For mapping, `Newbler` version 2.5.3 was used.
 
 `DOM` stands for house sparrow, *P. domesticus*
 `HISP` stands for Spanish sparrows, *P. hispaniolensis* 
 
 ####Prerequiste files
 
-* MID config files, describing the tags used for multiplexing, in the format needed for Newbler
+* MID config files, describing the tags used for multiplexing, in the format needed for `Newbler`
 
 ```
 DOM_MIDConfig.parse
@@ -36,6 +51,8 @@ readID_sample.tsv
 ```
 
 ####Step 1: DOM reads to zebrafinch transcripts
+Instead of the `gsMapping` command, the `newMapping`, `addRun`, `setRef` and `runProject` commands were used to set up and perform the mapping:
+
 ```
 PROJECT=110621_DOM_vs_Tg_ml90%mi95
 newMapping -cdna $PROJECT
@@ -188,7 +205,8 @@ The `relevant_SNPs_final.tsv` file is part of this repository.
 For **Step 1**, change the `addRun` to 
 
 ```
-addRun -mcf HSIP_MIDConfig.parse $PROJECT JoMID@/data/all_reads.sff
+addRun -mcf HISP_MIDConfig.parse $PROJECT JoMID@/data/all_reads.sff
 ```
 
 For **Step 2 and 3**, use `HISP` when changing the contigs names in the `454AllContigs.fna`.
+**NOTE** that there will be overlapping SNPs with the results of the first round.
